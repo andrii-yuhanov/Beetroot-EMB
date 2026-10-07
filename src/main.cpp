@@ -1,61 +1,30 @@
 #include <Arduino.h>
 #define Baudrate 115200
-#define LED_RED_OUT 15
-#define LED_BLUE_OUT 16
-#define BUTTON_PIN 17
-#define BOOT_BUTTON 0
+#define LED_PIN 16
+#define LCD_PIN 4
 
-u_int8_t buttonState = HIGH;
-u_int8_t bootButtonState = HIGH;
+u_int16_t raw;
+u_int16_t milivolts;
 
 void setup() {
   Serial.begin(Baudrate);
-  Serial.println("Hello world!");
   // put your setup code here, to run once:
-  pinMode(LED_RED_OUT, OUTPUT);
-  pinMode(LED_BLUE_OUT, OUTPUT);
-  pinMode(BUTTON_PIN, INPUT_PULLUP);
-  pinMode(BOOT_BUTTON, INPUT_PULLUP);
+  pinMode(LED_PIN, OUTPUT);
+  pinMode(LCD_PIN, INPUT);
 
 }
 
 void loop() {
-  delay(25);
-  buttonState = digitalRead(BUTTON_PIN);
-  bootButtonState = digitalRead(BOOT_BUTTON);
+  delay(500);
+  raw = analogRead(LCD_PIN);
+  float milivolts_calculated = raw/4095.0f*3100.0f;
 
-  u_int8_t selectedMode = buttonState ? bootButtonState ? 0 : 2 : 1;
-  if(selectedMode == 0)
-  {
-    digitalWrite(LED_BLUE_OUT, LOW);
-    digitalWrite(LED_RED_OUT, LOW);
-  }
-  if(selectedMode == 1)
-  {
-    digitalWrite(LED_BLUE_OUT, HIGH);
-    digitalWrite(LED_RED_OUT, HIGH);
-    Serial.println("Red");
+  milivolts = analogReadMilliVolts(LCD_PIN);
 
-    delay(200);
+  float measure_error = (milivolts_calculated - milivolts) / (float)milivolts * 100;
 
+  Serial.printf("milivolts calculated: %.0f\n",milivolts_calculated);
+  Serial.printf("milivolts: %d\n", milivolts);
+  Serial.printf("measure_error: %.2f\%\n", measure_error);
 
-    digitalWrite(LED_RED_OUT, LOW);
-    digitalWrite(LED_BLUE_OUT, LOW);
-
-    Serial.println("Blue");
-
-    delay(200);
-  }
-  if(selectedMode == 2)
-  {
-    digitalWrite(LED_BLUE_OUT, HIGH);
-    digitalWrite(LED_RED_OUT, LOW);
-
-    delay(1000);
-
-    digitalWrite(LED_BLUE_OUT, LOW);
-    digitalWrite(LED_RED_OUT, HIGH);
-
-    delay(1000);
-  }
 }
